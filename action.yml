@@ -66,12 +66,13 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Resolve Claude authentication
+    - name: Resolve credentials
       id: auth
       shell: bash
       env:
         STP_API_KEY: ${{ inputs.anthropic-api-key }}
         STP_OAUTH_TOKEN: ${{ inputs.claude-code-oauth-token }}
+        STP_HAS_GITHUB_TOKEN: ${{ inputs.github-token != '' }}
       run: bash "$GITHUB_ACTION_PATH/scripts/auth.sh"
 
     - name: Prepare skill

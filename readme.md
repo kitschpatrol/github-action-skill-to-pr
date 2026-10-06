@@ -60,7 +60,7 @@ jobs:
       # Project-specific setup belongs here. For example, install pnpm and
       # Node.js, then run pnpm ci so the project's prepare script syncs skills.
 
-      - uses: kitschpatrol/github-action-skill-to-pr@main
+      - uses: kitschpatrol/github-action-skill-to-pr@v1
         with:
           skill: ksc-update
           instructions: |
@@ -118,9 +118,9 @@ gh secret set CLAUDE_CODE_OAUTH_TOKEN
 gh secret set ANTHROPIC_API_KEY
 ```
 
-A GitHub token is required for publication, but you do not have to supply one: `github-token` defaults to the workflow's `github.token`. It needs `contents: write` and `pull-requests: write`, and repository settings must allow GitHub Actions to create pull requests.
+A GitHub token is required for publication, but you do not have to supply one: `github-token` defaults to the workflow's `github.token`. It needs `contents: write` and `pull-requests: write`, and repository settings must allow GitHub Actions to create pull requests. An empty `github-token`, such as a secret that is not set, fails the run before Claude starts.
 
-For automatic follow-up CI, supply a PAT or GitHub App token with those permissions. GitHub applies special restrictions to events created using `GITHUB_TOKEN`; see [GitHub's workflow triggering rules](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow). If using a separate publishing token, the workflow token can have only `contents: read`. Claude always receives the workflow token; the supplied publishing token is passed only to create-pull-request. The system prompt's restrictions are instructions to the agent, not a sandbox.
+For automatic follow-up CI, supply a PAT or GitHub App token with those permissions. GitHub applies special restrictions to events created using `GITHUB_TOKEN`; see [GitHub's workflow triggering rules](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow). If using a separate publishing token, the workflow token can have only `contents: read`. Claude always receives the workflow token; the supplied publishing token is passed only to create-pull-request. Environment variables set on the action step reach Claude's shell, so a read-only `GITHUB_TOKEN` there raises GitHub API rate limits for skills that look up releases. The system prompt's restrictions are instructions to the agent, not a sandbox.
 
 ### Inputs
 

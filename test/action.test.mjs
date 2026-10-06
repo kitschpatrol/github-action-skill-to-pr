@@ -25,6 +25,7 @@ function fixture(context) {
 		CLAUDE_CODE_OAUTH_TOKEN: '',
 		STP_API_KEY: '',
 		STP_OAUTH_TOKEN: '',
+		STP_HAS_GITHUB_TOKEN: 'true',
 		STP_SKILL: 'example',
 		STP_SOURCE: '',
 		STP_BRANCH: '',
@@ -112,6 +113,16 @@ test('an input credential overrides the environment credential of the same kind'
 	})
 	assert.equal(result.status, 0, result.stderr)
 	assert.equal(f.outputs()['api-key'], 'input-secret')
+})
+
+test('an empty publishing token fails before Claude runs', (context) => {
+	const f = fixture(context)
+	const result = f.run('auth.sh', {
+		STP_OAUTH_TOKEN: 'oauth-secret',
+		STP_HAS_GITHUB_TOKEN: 'false',
+	})
+	assert.notEqual(result.status, 0)
+	assert.match(result.stderr, /github-token is empty/)
 })
 
 test('credentials containing line breaks are rejected before reaching outputs', (context) => {
