@@ -1,0 +1,136 @@
+name: Skill to PR
+description: Run a skill with Claude Code and create or update a pull request when files change.
+author: Eric Mika
+branding:
+  icon: git-pull-request
+  color: green
+
+inputs:
+  skill:
+    description: Skill name (the directory containing SKILL.md).
+    required: true
+  skill-source:
+    description: Optional repository or URL supported by the skills CLI. Omit to use a local skill.
+    required: false
+  instructions:
+    description: Passed to the skill as its arguments. Task details and decision guidance for the unattended run.
+    required: false
+  claude-code-oauth-token:
+    description: Claude subscription token from claude setup-token. Also accepts the CLAUDE_CODE_OAUTH_TOKEN env var.
+    required: false
+  anthropic-api-key:
+    description: Anthropic API key. Also accepts the ANTHROPIC_API_KEY env var. OAuth takes precedence.
+    required: false
+  github-token:
+    description: Token for publishing the PR. Defaults to github.token; accepts a PAT or GitHub App token.
+    required: false
+    default: ${{ github.token }}
+  model:
+    description: Claude model name or alias.
+    required: false
+    default: opus
+  effort:
+    description: Claude effort level (low, medium, high, xhigh, or max). Omit to use Claude's default.
+    required: false
+  max-turns:
+    description: Maximum number of Claude turns. Reaching the limit fails the run and publishes nothing.
+    required: false
+    default: '80'
+  allowed-bots:
+    description: Bot actors allowed to trigger Claude, passed through to claude-code-action.
+    required: false
+  branch:
+    description: Reusable PR branch. Defaults to automation/<skill>.
+    required: false
+  title:
+    description: PR title. Defaults to Run followed by the skill name.
+    required: false
+  commit-message:
+    description: Commit message. Defaults to the PR title.
+    required: false
+
+outputs:
+  pull-request-number:
+    description: Number of the pull request, if any.
+    value: ${{ steps.publish.outputs.pull-request-number }}
+  pull-request-url:
+    description: URL of the pull request, if any.
+    value: ${{ steps.publish.outputs.pull-request-url }}
+  pull-request-operation:
+    description: Operation performed by create-pull-request (created, updated, closed, or none).
+    value: ${{ steps.publish.outputs.pull-request-operation }}
+  report-path:
+    description: Path to the Markdown report in the runner's temporary directory.
+    value: ${{ steps.prepare.outputs.directory }}/report.md
+
+runs:
+  using: composite
+  steps:
+    - name: Resolve Claude authentication
+      id: auth
+      shell: bash
+      env:
+        STP_API_KEY: ${{ inputs.anthropic-api-key }}
+        STP_OAUTH_TOKEN: ${{ inputs.claude-code-oauth-token }}
+      run: bash "$GITHUB_ACTION_PATH/scripts/auth.sh"
+
+    - name: Prepare skill
+      id: prepare
+      shell: bash
+      env:
+        STP_SKILL: ${{ inputs.skill }}
+        STP_SOURCE: ${{ inputs.skill-source }}
+        STP_BRANCH: ${{ inputs.branch }}
+        STP_MODEL: ${{ inputs.model }}
+        STP_EFFORT: ${{ inputs.effort }}
+        STP_MAX_TURNS: ${{ inputs.max-turns }}
+      run: bash "$GITHUB_ACTION_PATH/scripts/prepare.sh"
+
+    - name: Run skill with Claude Code
+      id: claude
+      uses: anthropics/claude-code-action@6c690188da61cf16ee7debb28383ba67f02abb4c # v1.0.242
+      env:
+        # Override inherited credentials as well as inputs so OAuth wins.
+        ANTHROPIC_API_KEY: ${{ steps.auth.outputs.api-key }}
+        CLAUDE_CODE_OAUTH_TOKEN: ${{ steps.auth.outputs.oauth-token }}
+      with:
+        anthropic_api_key: ${{ steps.auth.outputs.api-key }}
+        claude_code_oauth_token: ${{ steps.auth.outputs.oauth-token }}
+        github_token: ${{ github.token }}
+        allowed_bots: ${{ inputs.allowed-bots }}
+        # Everything after the skill name is the skill's argument string, so the
+        # unattended-run instructions ride in the system prompt instead.
+        prompt: |
+          /${{ inputs.skill }}
+          ${{ inputs.instructions }}
+        # toJSON quotes paths for claude-code-action's shell-style argument parser.
+        claude_args: >-
+          --model ${{ inputs.model }}
+          ${{ inputs.effort != '' && format('--effort {0}', inputs.effort) || '' }}
+          --max-turns ${{ inputs.max-turns }}
+          --add-dir ${{ toJSON(steps.prepare.outputs.directory) }}
+          --append-system-prompt-file ${{ toJSON(steps.prepare.outputs.system-prompt) }}
+          --allowedTools "Bash,Read,Edit,Write,Glob,Grep,Skill,Agent,TodoWrite,WebFetch,WebSearch"
+          --disallowedTools "AskUserQuestion"
+
+    - name: Build PR description
+      shell: bash
+      env:
+        STP_CONCLUSION: ${{ steps.claude.outputs.conclusion }}
+        STP_DIRECTORY: ${{ steps.prepare.outputs.directory }}
+        STP_SKILL: ${{ inputs.skill }}
+        STP_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      run: bash "$GITHUB_ACTION_PATH/scripts/report.sh"
+
+    - name: Create or update pull request
+      id: publish
+      uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+      with:
+        token: ${{ inputs.github-token }}
+        branch: ${{ steps.prepare.outputs.branch }}
+        delete-branch: true
+        title: >-
+          ${{ inputs.title || format('Run {0}', inputs.skill) }}
+        commit-message: >-
+          ${{ inputs.commit-message || inputs.title || format('Run {0}', inputs.skill) }}
+        body-path: ${{ steps.prepare.outputs.directory }}/body.md

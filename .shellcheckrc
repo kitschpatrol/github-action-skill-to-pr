@@ -1,0 +1,2 @@
+# These scripts intentionally emit literal Markdown backticks.
+disable=SC2016

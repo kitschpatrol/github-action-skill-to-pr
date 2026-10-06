@@ -1,0 +1,46 @@
+{
+	"name": "github-action-skill-to-pr",
+	"version": "0.0.0",
+	"private": true,
+	"description": "GitHub Action to run a skill and submit a PR if code changed.",
+	"keywords": [
+		"github-action",
+		"action",
+		"skill",
+		"agent"
+	],
+	"homepage": "https://github.com/kitschpatrol/github-action-skill-to-pr",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/kitschpatrol/github-action-skill-to-pr.git"
+	},
+	"license": "MIT",
+	"author": {
+		"name": "Eric Mika",
+		"email": "eric@ericmika.com",
+		"url": "https://ericmika.com"
+	},
+	"type": "module",
+	"scripts": {
+		"build": "echo 'No build necessary'",
+		"clean-deep": "shx rm -f pnpm-lock.yaml && git clean -fdX -e !.claude/",
+		"fix": "ksc fix --skip eslint knip stylelint typescript",
+		"lint": "ksc lint --skip eslint knip stylelint typescript",
+		"prepare": "skills experimental_sync -y -f",
+		"release": "bumpp --commit 'Release: %s' && bash scripts/sync-major-tag.sh",
+		"test": "node --test"
+	},
+	"devDependencies": {
+		"@kitschpatrol/shared-config": "^8.12.0",
+		"bumpp": "^12.3.0",
+		"shx": "^0.4.0",
+		"skills": "^1.7.0"
+	},
+	"packageManager": "pnpm@12.8.1",
+	"devEngines": {
+		"runtime": {
+			"name": "node",
+			"version": ">=24.16.0"
+		}
+	}
+}
