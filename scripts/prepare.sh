@@ -46,10 +46,10 @@ else
 	fail "Skill '$STP_SKILL' not found in .claude/skills, .claude/commands, or .agents/skills. Run project setup first or provide skill-source."
 fi
 
-# The harness instructions ride in the system prompt so that the skill receives
-# only the caller's instructions as its argument string.
+# The harness and the workflow's instructions ride in the system prompt so that
+# the skill receives only the arguments input as its argument string.
 cat > "$directory/system-prompt.md" << PROMPT
-This is an unattended CI run of the /$STP_SKILL skill in the checked-out repository, started by a GitHub Actions workflow. The user's message invokes the skill; any text after the skill name is the task's additional instructions and decision guidance.
+This is an unattended CI run of the /$STP_SKILL skill in the checked-out repository, started by a GitHub Actions workflow. The user's message invokes the skill; any text after the skill name is the skill's arguments. Additional instructions from the workflow, if any, appear at the end of this system prompt.
 
 Run the skill through to completion. Never ask questions, request confirmation, or wait for a reply, even when the skill normally calls for it. Make reasonable routine implementation decisions using the repository's conventions and the additional instructions. Treat those instructions as advance approval for the decisions they explicitly cover. Defer destructive, out-of-scope, or otherwise high-impact decisions that still need human input, continue independent work, and explain what you deferred in the report.
 
@@ -57,6 +57,9 @@ Do not commit, push, switch branches, open a PR, or write to the GitHub API. Lea
 
 When finished, use the Write tool to save your final report as Markdown to "$directory/report.md". Write it even when nothing changed. It becomes the PR description: start with a short summary, then describe the changes, validation and its results, assumptions, and deferred decisions. Include any final report required by the skill. Keep credentials and other secrets out of the report.
 PROMPT
+if [[ -n "${STP_INSTRUCTIONS:-}" ]]; then
+	printf '\nAdditional instructions:\n\n%s\n' "$STP_INSTRUCTIONS" >> "$directory/system-prompt.md"
+fi
 
 {
 	printf 'directory=%s\n' "$directory"

@@ -28,6 +28,7 @@ function fixture(context) {
 		STP_HAS_GITHUB_TOKEN: 'true',
 		STP_SKILL: 'example',
 		STP_SOURCE: '',
+		STP_INSTRUCTIONS: '',
 		STP_BRANCH: '',
 		STP_MODEL: 'opus',
 		STP_EFFORT: '',
@@ -144,9 +145,20 @@ test('local Claude skill takes precedence and preparation/reporting leaves no di
 	const systemPrompt = readFileSync(outputs['system-prompt'], 'utf8')
 	assert.ok(systemPrompt.includes('/example skill'))
 	assert.ok(systemPrompt.includes(`"${outputs.directory}/report.md"`))
+	assert.ok(!systemPrompt.includes('Additional instructions:'))
 	assert.equal(f.run('report.sh').status, 0)
 	assert.match(readFileSync(join(outputs.directory, 'body.md'), 'utf8'), /did not write a report/)
 	assert.equal(f.git('status', '--porcelain'), '')
+})
+
+test('workflow instructions are appended to the system prompt', (context) => {
+	const f = fixture(context)
+	f.write('.claude/skills/example/SKILL.md')
+	const outputs = f.prepare({ STP_INSTRUCTIONS: 'Defer major upgrades.\nExplain why.' })
+	const systemPrompt = readFileSync(outputs['system-prompt'], 'utf8')
+	assert.ok(
+		systemPrompt.endsWith('\nAdditional instructions:\n\nDefer major upgrades.\nExplain why.\n'),
+	)
 })
 
 test('legacy command file is accepted as a local skill', (context) => {

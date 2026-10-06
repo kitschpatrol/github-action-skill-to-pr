@@ -71,7 +71,7 @@ jobs:
           # github-token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 ```
 
-`instructions` follows the skill name in Claude's prompt, so it is the skill's argument string. A skill that uses `$ARGUMENTS`, `$0`, or named arguments receives it there; a skill with no placeholder sees it appended as `ARGUMENTS: ...`. Multi-line text is fine.
+`arguments` follows the skill name in Claude's prompt, exactly like text typed after `/<skill>`: a skill that uses `$ARGUMENTS`, `$0`, or named arguments receives it there, and one with no placeholder sees it appended as `ARGUMENTS: ...`. `instructions` is appended to the system prompt as standing guidance and advance approvals, so it never lands in the skill's arguments. Both accept multi-line text. Put in `arguments` what you would type after `/<skill>`, and in `instructions` what you would put in a CLAUDE.md for the run.
 
 ### Local skills
 
@@ -93,7 +93,7 @@ Set `skill-source` to a source supported by the [skills CLI](https://github.com/
 with:
   skill: web-design-guidelines
   skill-source: vercel-labs/agent-skills
-  instructions: Review this project and fix applicable accessibility issues.
+  arguments: Review this project and fix applicable accessibility issues.
   claude-code-oauth-token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 ```
 
@@ -128,7 +128,8 @@ For automatic follow-up CI, supply a PAT or GitHub App token with those permissi
 | ------------------------- | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | `skill`                   | Required             | Local skill directory name or skill to select from a remote source.                                                                           |
 | `skill-source`            | Local lookup         | Repository or URL to install from.                                                                                                            |
-| `instructions`            | Empty                | Skill arguments: task details and advance guidance for decisions the skill would normally ask about.                                          |
+| `arguments`               | Empty                | Text after the skill name, as typed after `/<skill>`.                                                                                         |
+| `instructions`            | Empty                | Guidance and advance approvals appended to the system prompt.                                                                                 |
 | `claude-code-oauth-token` | Environment variable | Claude subscription authentication.                                                                                                           |
 | `anthropic-api-key`       | Environment variable | API-key authentication when OAuth is absent.                                                                                                  |
 | `github-token`            | `github.token`       | PR publishing credential.                                                                                                                     |

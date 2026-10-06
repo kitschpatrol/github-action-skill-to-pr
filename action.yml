@@ -12,8 +12,11 @@ inputs:
   skill-source:
     description: Optional repository or URL supported by the skills CLI. Omit to use a local skill.
     required: false
+  arguments:
+    description: Text placed after the skill name, exactly as you would type it after /<skill>.
+    required: false
   instructions:
-    description: Passed to the skill as its arguments. Task details and decision guidance for the unattended run.
+    description: Standing guidance and advance approvals for the unattended run, appended to the system prompt.
     required: false
   claude-code-oauth-token:
     description: Claude subscription token from claude setup-token. Also accepts the CLAUDE_CODE_OAUTH_TOKEN env var.
@@ -81,6 +84,7 @@ runs:
       env:
         STP_SKILL: ${{ inputs.skill }}
         STP_SOURCE: ${{ inputs.skill-source }}
+        STP_INSTRUCTIONS: ${{ inputs.instructions }}
         STP_BRANCH: ${{ inputs.branch }}
         STP_MODEL: ${{ inputs.model }}
         STP_EFFORT: ${{ inputs.effort }}
@@ -102,8 +106,7 @@ runs:
         # Everything after the skill name is the skill's argument string, so the
         # unattended-run instructions ride in the system prompt instead.
         prompt: |
-          /${{ inputs.skill }}
-          ${{ inputs.instructions }}
+          /${{ inputs.skill }} ${{ inputs.arguments }}
         # toJSON quotes paths for claude-code-action's shell-style argument parser.
         claude_args: >-
           --model ${{ inputs.model }}
