@@ -23,9 +23,9 @@
 
 ## Overview
 
-This action resolves an agent skill, runs it with [Claude Code](https://github.com/anthropics/claude-code-action), and then uses [create-pull-request](https://github.com/peter-evans/create-pull-request) to commit any resulting changes and open or update a PR.
+This action resolves an agent skill, runs it with [anthropics/claude-code-action](https://github.com/anthropics/claude-code-action), and then uses [peter-evans/create-pull-request](https://github.com/peter-evans/create-pull-request) to commit any resulting changes and open or update a PR with a report on the run.
 
-The action wraps the skill invocation with a prompt telling the agent to work unattended, make routine decisions, and report decisions it must defer. It prohibits commits, pushes, branch changes, and GitHub writes.
+The action wraps the skill invocation with a prompt telling the agent to work unattended, make routine decisions, and report decisions it must defer. It prohibits commits, pushes, branch changes, and GitHub writes. You can augment this prompt with an input to the action.
 
 One reusable branch is created per skill, defaulting to `automation/<skill>`. Each run rebuilds the branch from the base, so any commits pushed to it by hand are discarded.
 
@@ -114,13 +114,21 @@ Claude needs either a subscription OAuth token from `claude setup-token` or an A
 ```sh
 claude setup-token
 gh secret set CLAUDE_CODE_OAUTH_TOKEN
-# Alternatively, store an API key from the Anthropic Console:
+```
+
+Alternatively, store an API key from the Anthropic Console:
+
+```sh
 gh secret set ANTHROPIC_API_KEY
 ```
 
-A GitHub token is required for publication, but you do not have to supply one: `github-token` defaults to the workflow's `github.token`. It needs `contents: write` and `pull-requests: write`, and repository settings must allow GitHub Actions to create pull requests. An empty `github-token`, such as a secret that is not set, fails the run before Claude starts.
+Publication uses `github-token`, which defaults to the workflow's automatic `github.token`. With that default, the workflow needs `contents: write` and `pull-requests: write`, and the repository setting "Allow GitHub Actions to create and approve pull requests" (Settings, Actions, General) must be on; it is off by default. Pass a PAT or GitHub App token instead when you want follow-up CI to run on the PR. An empty `github-token`, such as a secret that is not set, fails the run before Claude starts.
 
-For automatic follow-up CI, supply a PAT or GitHub App token with those permissions. GitHub applies special restrictions to events created using `GITHUB_TOKEN`; see [GitHub's workflow triggering rules](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow). If using a separate publishing token, the workflow token can have only `contents: read`. Claude always receives the workflow token; the supplied publishing token is passed only to create-pull-request. Environment variables set on the action step reach Claude's shell, so a read-only `GITHUB_TOKEN` there raises GitHub API rate limits for skills that look up releases. The system prompt's restrictions are instructions to the agent, not a sandbox.
+```sh
+gh secret set PERSONAL_ACCESS_TOKEN
+```
+
+A PAT or GitHub App token needs those same permissions. GitHub applies special restrictions to events created using `GITHUB_TOKEN`; see [GitHub's workflow triggering rules](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow). If using a separate publishing token, the workflow token can have only `contents: read`. Claude always receives the workflow token; the supplied publishing token is passed only to create-pull-request. claude-code-action also exports the workflow token to Claude's shell as `GITHUB_TOKEN` and `GH_TOKEN`, so tools such as `gh` and `actions-up` get the authenticated GitHub API rate limit without any extra `env` on the action step. The system prompt's restrictions are instructions to the agent, not a sandbox.
 
 ### Inputs
 
