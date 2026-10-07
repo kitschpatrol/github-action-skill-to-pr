@@ -1,6 +1,6 @@
 {
 	"name": "github-action-skill-to-pr",
-	"version": "1.1.0",
+	"version": "1.1.1",
 	"private": true,
 	"description": "GitHub Action to run a skill and submit a PR if code changed.",
 	"keywords": [
