@@ -209,7 +209,7 @@ printf '{}' > skills-lock.json
 	const outputs = f.prepare({ STP_SOURCE: source, PATH: `${bin}:${process.env.PATH}` })
 	assert.deepEqual(readFileSync(join(f.temp, 'arguments'), 'utf8').trim().split('\n'), [
 		'--yes',
-		'skills@1.7.0',
+		'skills@1.7.2',
 		'add',
 		source,
 		'--skill',

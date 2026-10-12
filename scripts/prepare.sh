@@ -33,7 +33,7 @@ if [[ -n "${STP_SOURCE:-}" ]]; then
 	# Install outside the checkout, keeping downloaded files and locks out of the PR.
 	(
 		cd "$directory"
-		DISABLE_TELEMETRY=1 GIT_TERMINAL_PROMPT=0 npx --yes skills@1.7.0 add "$STP_SOURCE" \
+		DISABLE_TELEMETRY=1 GIT_TERMINAL_PROMPT=0 npx --yes skills@1.7.2 add "$STP_SOURCE" \
 			--skill "$STP_SKILL" --agent claude-code --yes --copy
 	)
 	[[ -f "$directory/.claude/skills/$STP_SKILL/SKILL.md" ]] || fail 'The source did not install the requested skill.'
