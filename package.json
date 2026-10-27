@@ -26,17 +26,15 @@
 		"clean-deep": "shx rm -f pnpm-lock.yaml && git clean -fdX -e !.claude/",
 		"fix": "ksc fix --skip eslint knip stylelint typescript",
 		"lint": "ksc lint --skip eslint knip stylelint typescript",
-		"prepare": "skills experimental_sync -y -f",
 		"release": "bumpp --commit 'Release: %s' && bash scripts/sync-major-tag.sh",
 		"test": "node --test"
 	},
 	"devDependencies": {
 		"@kitschpatrol/shared-config": "^8.13.1",
 		"bumpp": "^12.3.0",
-		"shx": "^0.4.0",
-		"skills": "^1.7.2"
+		"shx": "^0.4.0"
 	},
-	"packageManager": "pnpm@12.11.2",
+	"packageManager": "pnpm@12.15.0",
 	"devEngines": {
 		"runtime": {
 			"name": "node",
