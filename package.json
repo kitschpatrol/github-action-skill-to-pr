@@ -30,7 +30,7 @@
 		"test": "node --test"
 	},
 	"devDependencies": {
-		"@kitschpatrol/shared-config": "^8.13.1",
+		"@kitschpatrol/shared-config": "^8.14.0",
 		"bumpp": "^12.3.0",
 		"shx": "^0.4.0"
 	},
