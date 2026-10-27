@@ -106,7 +106,7 @@ runs:
         # Everything after the skill name is the skill's argument string, so the
         # unattended-run instructions ride in the system prompt instead.
         prompt: |
-          /${{ inputs.skill }} ${{ inputs.arguments }}
+          /${{ steps.prepare.outputs.command }} ${{ inputs.arguments }}
         # toJSON quotes paths for claude-code-action's shell-style argument parser.
         claude_args: >-
           --model ${{ inputs.model }}

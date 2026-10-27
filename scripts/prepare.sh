@@ -21,10 +21,19 @@ branch="${STP_BRANCH:-automation/$STP_SKILL}"
 git check-ref-format --branch "$branch" > /dev/null || fail 'Invalid PR branch name.'
 [[ "$branch" != "$base" ]] || fail 'The PR branch must differ from the checked-out base branch.'
 
+declares_skill_name() {
+	awk -v name="$STP_SKILL" '
+		NR == 1 && !/^---[[:space:]]*$/ { exit 1 }
+		NR > 1 && /^---[[:space:]]*$/ { exit 1 }
+		/^name:/ { exit $0 !~ ("^name:[[:space:]]*[\"\047]?" name "[\"\047]?[[:space:]]*$") }
+	' "$1"
+}
+
 directory=$(mktemp -d "$RUNNER_TEMP/skill-to-pr.XXXXXX")
 git rev-parse HEAD > "$directory/head"
 printf '%s\n' "$base" > "$directory/base"
 mkdir -p "$directory/.claude/skills"
+command="$STP_SKILL"
 
 if [[ -n "${STP_SOURCE:-}" ]]; then
 	# Avoid ambiguous Claude skill precedence when a source is explicitly selected.
@@ -39,17 +48,31 @@ if [[ -n "${STP_SOURCE:-}" ]]; then
 	[[ -f "$directory/.claude/skills/$STP_SKILL/SKILL.md" ]] || fail 'The source did not install the requested skill.'
 elif [[ -f ".claude/skills/$STP_SKILL/SKILL.md" || -f ".claude/commands/$STP_SKILL.md" ]]; then
 	: # Already discoverable by Claude, including skills installed by project setup.
-elif [[ -f ".agents/skills/$STP_SKILL/SKILL.md" ]]; then
-	# Claude loads skills from --add-dir. Preserve access to all supporting files.
-	ln -s "$GITHUB_WORKSPACE/.agents/skills/$STP_SKILL" "$directory/.claude/skills/$STP_SKILL"
 else
-	fail "Skill '$STP_SKILL' not found in .claude/skills, .claude/commands, or .agents/skills. Run project setup first or provide skill-source."
+	# pnpm installs dependency skills as pnpm-<package>-<skill>, and Claude names
+	# them by directory. Package names may contain hyphens, so match the declared name.
+	matches=()
+	for file in .claude/skills/pnpm-*-"$STP_SKILL"/SKILL.md; do
+		if [[ -f "$file" ]] && declares_skill_name "$file"; then
+			matches+=("$file")
+		fi
+	done
+	((${#matches[@]} <= 1)) || fail "Multiple pnpm-installed skills are named '$STP_SKILL': ${matches[*]}"
+	if ((${#matches[@]} == 1)); then
+		command=$(basename "$(dirname "${matches[0]}")")
+		[[ "$command" =~ ^pnpm-[a-z0-9@+._~-]+$ ]] || fail "Invalid pnpm skill directory name: $command"
+	elif [[ -f ".agents/skills/$STP_SKILL/SKILL.md" ]]; then
+		# Claude loads skills from --add-dir. Preserve access to all supporting files.
+		ln -s "$GITHUB_WORKSPACE/.agents/skills/$STP_SKILL" "$directory/.claude/skills/$STP_SKILL"
+	else
+		fail "Skill '$STP_SKILL' not found in .claude/skills, .claude/commands, or .agents/skills. Run project setup first or provide skill-source."
+	fi
 fi
 
 # The harness and the workflow's instructions ride in the system prompt so that
 # the skill receives only the arguments input as its argument string.
 cat > "$directory/system-prompt.md" << PROMPT
-This is an unattended CI run of the /$STP_SKILL skill in the checked-out repository, started by a GitHub Actions workflow. The user's message invokes the skill; any text after the skill name is the skill's arguments. Additional instructions from the workflow, if any, appear at the end of this system prompt.
+This is an unattended CI run of the /$command skill in the checked-out repository, started by a GitHub Actions workflow. The user's message invokes the skill; any text after the skill name is the skill's arguments. Additional instructions from the workflow, if any, appear at the end of this system prompt.
 
 Run the skill through to completion. Never ask questions, request confirmation, or wait for a reply, even when the skill normally calls for it. Make reasonable routine implementation decisions using the repository's conventions and the additional instructions. Treat those instructions as advance approval for the decisions they explicitly cover. Defer destructive, out-of-scope, or otherwise high-impact decisions that still need human input, continue independent work, and explain what you deferred in the report.
 
@@ -65,4 +88,5 @@ fi
 	printf 'directory=%s\n' "$directory"
 	printf 'system-prompt=%s\n' "$directory/system-prompt.md"
 	printf 'branch=%s\n' "$branch"
+	printf 'command=%s\n' "$command"
 } >> "$GITHUB_OUTPUT"

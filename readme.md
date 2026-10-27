@@ -80,9 +80,10 @@ Without `skill-source`, the action checks these repository-root paths in order:
 
 1. `.claude/skills/<skill>/SKILL.md`
 2. `.claude/commands/<skill>.md`
-3. `.agents/skills/<skill>/SKILL.md`
+3. `.claude/skills/pnpm-<package>-<skill>/SKILL.md` whose frontmatter `name` is `<skill>`, as installed by pnpm's `skills` setting
+4. `.agents/skills/<skill>/SKILL.md`
 
-Existing symlinks work. An `.agents` skill is exposed to Claude through a temporary directory passed with `--add-dir`, preserving its supporting scripts and resources. The consuming project's setup or `prepare` script must install dependency-provided skills before this action runs. Missing skills fail before Claude starts; the action does not search `node_modules` or run `skills experimental_sync`.
+Existing symlinks work. A pnpm-installed skill is invoked by its directory name, which is how Claude identifies it. An `.agents` skill is exposed to Claude through a temporary directory passed with `--add-dir`, preserving its supporting scripts and resources. The consuming project's setup or `prepare` script must install dependency-provided skills before this action runs. Missing skills fail before Claude starts; the action does not search `node_modules` or run `skills experimental_sync`.
 
 Use the skill's directory name: up to 64 lowercase letters, numbers, and single hyphens, with a letter or number at either end.
 

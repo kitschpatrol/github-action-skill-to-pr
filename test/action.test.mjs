@@ -166,6 +166,38 @@ test('legacy command file is accepted as a local skill', (context) => {
 	f.write('.claude/commands/example.md')
 	const outputs = f.prepare()
 	assert.equal(outputs.branch, 'automation/example')
+	assert.equal(outputs.command, 'example')
+})
+
+test('pnpm-installed Claude skill is invoked by its directory name', (context) => {
+	const f = fixture(context)
+	f.write('.claude/skills/pnpm-@scope+multi-part-example/SKILL.md', '---\nname: example\n---\n')
+	f.write('.agents/skills/example/SKILL.md', 'A different skill.\n')
+	const outputs = f.prepare()
+	assert.equal(outputs.command, 'pnpm-@scope+multi-part-example')
+	assert.equal(outputs.branch, 'automation/example')
+	assert.ok(
+		readFileSync(outputs['system-prompt'], 'utf8').includes(
+			'/pnpm-@scope+multi-part-example skill',
+		),
+	)
+})
+
+test('pnpm skill directory suffix alone does not select a differently named skill', (context) => {
+	const f = fixture(context)
+	f.write('.claude/skills/pnpm-package-other-example/SKILL.md', '---\nname: other-example\n---\n')
+	const result = f.run('prepare.sh')
+	assert.notEqual(result.status, 0)
+	assert.match(result.stderr, /not found/)
+})
+
+test('pnpm skills with the same name from different packages fail as ambiguous', (context) => {
+	const f = fixture(context)
+	f.write('.claude/skills/pnpm-first-example/SKILL.md', '---\nname: example\n---\n')
+	f.write('.claude/skills/pnpm-second-example/SKILL.md', "---\nname: 'example'\n---\n")
+	const result = f.run('prepare.sh')
+	assert.notEqual(result.status, 0)
+	assert.match(result.stderr, /Multiple pnpm-installed skills/)
 })
 
 test('agents skill retains supporting files through its temporary Claude link', (context) => {
