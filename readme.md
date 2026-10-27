@@ -4,10 +4,11 @@
 
 <!-- /title -->
 
-<!-- badges -->
+<!-- badges({ githubRelease: true }) -->
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/license/mit)
 [![CI](https://github.com/kitschpatrol/github-action-skill-to-pr/actions/workflows/ci.yml/badge.svg)](https://github.com/kitschpatrol/github-action-skill-to-pr/actions/workflows/ci.yml)
+[![GitHub Release](https://img.shields.io/github/v/release/kitschpatrol/github-action-skill-to-pr?label=Release)](https://github.com/kitschpatrol/github-action-skill-to-pr/releases/latest)
 
 <!-- /badges -->
 
