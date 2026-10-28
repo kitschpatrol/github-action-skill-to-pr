@@ -23,7 +23,7 @@
 	"type": "module",
 	"scripts": {
 		"build": "echo 'No build necessary'",
-		"clean-deep": "shx rm -f pnpm-lock.yaml && git clean -fdX -e !.claude/",
+		"clean-deep": "shx rm -f pnpm-lock.yaml && git clean -fdX",
 		"fix": "ksc fix --skip eslint knip stylelint typescript",
 		"lint": "ksc lint --skip eslint knip stylelint typescript",
 		"release": "bumpp --commit 'Release: %s' && bash scripts/sync-major-tag.sh",
