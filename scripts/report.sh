@@ -16,9 +16,10 @@ fi
 
 report="$STP_DIRECTORY/report.md"
 body="$STP_DIRECTORY/body.md"
+# Claude writes the report last, so a missing one means the session ended early.
 if [[ ! -s "$report" ]]; then
-	echo '::warning::Claude did not write a report. Using a fallback PR description.'
-	printf 'The `%s` skill ran but did not write a report. Review the diff and workflow logs for details.\n' "$STP_SKILL" > "$report"
+	echo '::error::Claude ended without writing its report, so the skill probably did not finish. Refusing to publish partial changes.' >&2
+	exit 1
 fi
 cat "$report" >> "$GITHUB_STEP_SUMMARY"
 

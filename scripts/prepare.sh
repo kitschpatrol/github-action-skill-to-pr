@@ -78,7 +78,7 @@ Run the skill through to completion. Never ask questions, request confirmation, 
 
 Do not commit, push, switch branches, open a PR, or write to the GitHub API. Leave the resulting changes in the working tree. A later step handles commits and the pull request. Do not manufacture changes if the skill has nothing to do.
 
-When finished, use the Write tool to save your final report as Markdown to "$directory/report.md". Write it even when nothing changed. It becomes the PR description: start with a short summary, then describe the changes, validation and its results, assumptions, and deferred decisions. Include any final report required by the skill. Keep credentials and other secrets out of the report.
+When finished, use the Write tool to save your final report as Markdown to "$directory/report.md". Write it even when nothing changed, and only after all other work is done: a run that ends without the report counts as incomplete and publishes nothing. It becomes the PR description: start with a short summary, then describe the changes, validation and its results, assumptions, and deferred decisions. Include any final report required by the skill. Keep credentials and other secrets out of the report.
 PROMPT
 if [[ -n "${STP_INSTRUCTIONS:-}" ]]; then
 	printf '\nAdditional instructions:\n\n%s\n' "$STP_INSTRUCTIONS" >> "$directory/system-prompt.md"

@@ -146,8 +146,9 @@ test('local Claude skill takes precedence and preparation/reporting leaves no di
 	assert.ok(systemPrompt.includes('/example skill'))
 	assert.ok(systemPrompt.includes(`"${outputs.directory}/report.md"`))
 	assert.ok(!systemPrompt.includes('Additional instructions:'))
+	writeFileSync(join(outputs.directory, 'report.md'), 'Nothing to change.\n')
 	assert.equal(f.run('report.sh').status, 0)
-	assert.match(readFileSync(join(outputs.directory, 'body.md'), 'utf8'), /did not write a report/)
+	assert.match(readFileSync(join(outputs.directory, 'body.md'), 'utf8'), /^Nothing to change\./)
 	assert.equal(f.git('status', '--porcelain'), '')
 })
 
@@ -336,6 +337,21 @@ test('an unsuccessful Claude conclusion prevents publication of partial changes'
 	assert.notEqual(result.status, 0)
 	assert.match(result.stderr, /Refusing to publish partial changes/)
 })
+
+for (const report of ['missing', 'empty']) {
+	test(`partial changes are not published when the report is ${report}`, (context) => {
+		const f = fixture(context)
+		f.write('.claude/skills/example/SKILL.md')
+		const { directory } = f.prepare()
+		f.write('partial.txt', 'Unfinished work')
+		if (report === 'empty') {
+			writeFileSync(join(directory, 'report.md'), '')
+		}
+		const result = f.run('report.sh')
+		assert.notEqual(result.status, 0)
+		assert.match(result.stderr, /without writing its report/)
+	})
+}
 
 for (const change of ['commit', 'branch', 'detach']) {
 	test(`refuses publication if Claude changes the ${change}`, (context) => {
