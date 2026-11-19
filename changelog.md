@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Entries are drafted with LLM assistance via [Chagent](https://github.com/kitschpatrol/chagent).
 
+## [1.3.1] - 2026-11-19
+
+### Fixed
+
+- Run Claude Code subagents and shell commands in the foreground so Claude can finish the skill and write the report used for the PR description.
+
+### Documentation
+
+- Explain why the action disables background tasks and how `claude-code-action` can abandon them when it ends the session at Claude's first result.
+
 ## [1.3.0] - 2026-11-19
 
 ### Added
@@ -123,3 +133,4 @@ Entries are drafted with LLM assistance via [Chagent](https://github.com/kitschp
 [1.2.0]: https://github.com/kitschpatrol/github-action-skill-to-pr/compare/v1.1.1...v1.2.0
 [1.2.1]: https://github.com/kitschpatrol/github-action-skill-to-pr/compare/v1.2.0...v1.2.1
 [1.3.0]: https://github.com/kitschpatrol/github-action-skill-to-pr/compare/v1.2.1...v1.3.0
+[1.3.1]: https://github.com/kitschpatrol/github-action-skill-to-pr/compare/v1.3.0...v1.3.1
