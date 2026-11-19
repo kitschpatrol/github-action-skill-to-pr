@@ -353,6 +353,37 @@ for (const report of ['missing', 'empty']) {
 	})
 }
 
+test('a missing report logs the final message and last main-session tool calls without tool output', (context) => {
+	const f = fixture(context)
+	f.write('.claude/skills/example/SKILL.md')
+	f.prepare()
+	const toolCall = (command, parentToolUseId = null) => ({
+		type: 'assistant',
+		parent_tool_use_id: parentToolUseId,
+		message: { content: [{ type: 'tool_use', name: 'Bash', input: { command } }] },
+	})
+	const messages = [
+		{ type: 'system', subtype: 'init' },
+		...Array.from({ length: 11 }, (_, i) => toolCall(`step ${i}`)),
+		{ type: 'user', message: { content: [{ type: 'tool_result', content: 'tool output' }] } },
+		toolCall('subagent step', 'agent-1'),
+		toolCall(`write ${'x'.repeat(500)}`),
+		{ type: 'result', subtype: 'success', result: 'Waiting for the background build.' },
+	]
+	const executionFile = join(f.temp, 'claude-execution-output.json')
+	writeFileSync(executionFile, JSON.stringify(messages))
+	const result = f.run('report.sh', { STP_EXECUTION_FILE: executionFile })
+	assert.notEqual(result.status, 0)
+	assert.match(result.stderr, /without writing its report/)
+	assert.match(result.stdout, /Final message:\nWaiting for the background build\./)
+	assert.ok(result.stdout.includes('Bash {"command":"step 2"}'))
+	assert.ok(!result.stdout.includes('"step 1"'))
+	assert.ok(!result.stdout.includes('tool output'))
+	assert.ok(!result.stdout.includes('subagent step'))
+	assert.ok(result.stdout.includes('write xxx'))
+	assert.ok(!result.stdout.includes('x'.repeat(300)))
+})
+
 for (const change of ['commit', 'branch', 'detach']) {
 	test(`refuses publication if Claude changes the ${change}`, (context) => {
 		const f = fixture(context)

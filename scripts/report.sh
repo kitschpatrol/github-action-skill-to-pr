@@ -19,6 +19,25 @@ body="$STP_DIRECTORY/body.md"
 # Claude writes the report last, so a missing one means the session ended early.
 if [[ ! -s "$report" ]]; then
 	echo '::error::Claude ended without writing its report, so the skill probably did not finish. Refusing to publish partial changes.' >&2
+	if [[ -s "${STP_EXECUTION_FILE:-}" ]]; then
+		echo "::group::Claude's final message and last tool calls"
+		# Tool outputs stay out of the log because that's where secrets usually surface.
+		node --input-type=module - "$STP_EXECUTION_FILE" << 'JS'
+import { readFileSync } from 'node:fs'
+const messages = JSON.parse(readFileSync(process.argv[2], 'utf8'))
+const result = messages.findLast((message) => message.type === 'result')
+const toolCalls = messages
+  .filter((message) => message.type === 'assistant' && !message.parent_tool_use_id)
+  .flatMap((message) => message.message.content)
+  .filter((block) => block.type === 'tool_use')
+  .slice(-10)
+console.log(`Final message:\n${result?.result ?? '(none)'}\n\nLast tool calls:`)
+for (const call of toolCalls) {
+  console.log(`${call.name} ${JSON.stringify(call.input).slice(0, 200)}`)
+}
+JS
+		echo '::endgroup::'
+	fi
 	exit 1
 fi
 cat "$report" >> "$GITHUB_STEP_SUMMARY"

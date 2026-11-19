@@ -121,6 +121,7 @@ runs:
       shell: bash
       env:
         STP_CONCLUSION: ${{ steps.claude.outputs.conclusion }}
+        STP_EXECUTION_FILE: ${{ steps.claude.outputs.execution_file }}
         STP_DIRECTORY: ${{ steps.prepare.outputs.directory }}
         STP_SKILL: ${{ inputs.skill }}
         STP_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
