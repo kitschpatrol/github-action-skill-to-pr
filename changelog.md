@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+Entries are drafted with LLM assistance via [Chagent](https://github.com/kitschpatrol/chagent).
+
+## [1.3.0] - 2026-11-19
+
+### Added
+
+- Log Claude's final message and up to ten recent main-session tool calls in a collapsed workflow log group when the report is missing or empty and a transcript is available. Truncate tool inputs and omit tool outputs.
+
+### Changed
+
+- Run Claude Code in auto mode by default so a safety review can decide whether to allow tool calls outside the allowed-tools list.
+
+### Fixed
+
+- Fail the run before publishing partial changes when Claude leaves a missing or empty report. Have Claude write the report only after finishing the skill.
+
+### Documentation
+
+- Explain how Claude's final report becomes the PR description, which conditions stop publication, and where to find diagnostics when the report is missing.
+- Clarify that pnpm 12.18 and later install skills under their plain names when available and use prefixed names for collisions.
+- Document that setting `allowed-bots` retains the earlier Claude Code permission defaults.
+
+### Maintenance
+
+- Update `anthropics/claude-code-action` to v1.0.281, `peter-evans/create-pull-request` to v8.1.3, and the `skills` CLI used for remote installs to v1.9.0.
+- Generate changelog entries during version bumps with `@kitschpatrol/chagent` (`^0.8.0`), backfill the release history, and update the GitHub release-notes action to v3.0.0.
+- Update contributor tooling to pnpm 12.21.0 and `@kitschpatrol/shared-config` `^8.14.1`, and remove the Astro and Svelte extensions from the VS Code recommendations.
+- Update the repository's pnpm setup and metadata sync actions, and use Skill to PR v1.2.1 in the dependency-update workflow.
+- Add regression tests for missing and empty reports and for the limits on what the diagnostic logs include.
+
 ## [1.2.1] - 2026-11-01
 
 ### Maintenance
@@ -92,3 +122,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.1.1]: https://github.com/kitschpatrol/github-action-skill-to-pr/compare/v1.1.0...v1.1.1
 [1.2.0]: https://github.com/kitschpatrol/github-action-skill-to-pr/compare/v1.1.1...v1.2.0
 [1.2.1]: https://github.com/kitschpatrol/github-action-skill-to-pr/compare/v1.2.0...v1.2.1
+[1.3.0]: https://github.com/kitschpatrol/github-action-skill-to-pr/compare/v1.2.1...v1.3.0
