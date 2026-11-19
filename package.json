@@ -30,12 +30,12 @@
 		"test": "node --test"
 	},
 	"devDependencies": {
-		"@kitschpatrol/chagent": "^0.5.0",
-		"@kitschpatrol/shared-config": "^8.14.0",
+		"@kitschpatrol/chagent": "^0.8.0",
+		"@kitschpatrol/shared-config": "^8.14.1",
 		"bumpp": "^12.3.0",
 		"shx": "^0.4.0"
 	},
-	"packageManager": "pnpm@12.16.1",
+	"packageManager": "pnpm@12.21.0",
 	"devEngines": {
 		"runtime": {
 			"name": "node",

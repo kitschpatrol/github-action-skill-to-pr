@@ -1,7 +1,5 @@
 {
 	"recommendations": [
-		"astro-build.astro-vscode",
-		"svelte.svelte-vscode",
 		"dbaeumer.vscode-eslint",
 		"stylelint.vscode-stylelint",
 		"streetsidesoftware.code-spell-checker",

@@ -82,7 +82,7 @@ Without `skill-source`, the action checks these repository-root paths in order:
 
 1. `.claude/skills/<skill>/SKILL.md`
 2. `.claude/commands/<skill>.md`
-3. `.claude/skills/pnpm-<package>-<skill>/SKILL.md` whose frontmatter `name` is `<skill>`, as installed by pnpm's `skills` setting
+3. `.claude/skills/pnpm-<package>-<skill>/SKILL.md` whose frontmatter `name` is `<skill>`, as installed by pnpm's `skills` setting when the plain name is taken or by pnpm versions before 12.18, which link to path 1 otherwise
 4. `.agents/skills/<skill>/SKILL.md`
 
 Existing symlinks work. A pnpm-installed skill is invoked by its directory name, which is how Claude identifies it. An `.agents` skill is exposed to Claude through a temporary directory passed with `--add-dir`, preserving its supporting scripts and resources. The consuming project's setup or `prepare` script must install dependency-provided skills before this action runs. Missing skills fail before Claude starts; the action does not search `node_modules` or run `skills experimental_sync`.
@@ -133,6 +133,8 @@ gh secret set PERSONAL_ACCESS_TOKEN
 ```
 
 A PAT or GitHub App token needs those same permissions. GitHub applies special restrictions to events created using `GITHUB_TOKEN`; see [GitHub's workflow triggering rules](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow). If using a separate publishing token, the workflow token can have only `contents: read`. Claude always receives the workflow token; the supplied publishing token is passed only to create-pull-request. claude-code-action also exports the workflow token to Claude's shell as `GITHUB_TOKEN` and `GH_TOKEN`, so tools such as `gh` and `actions-up` get the authenticated GitHub API rate limit without any extra `env` on the action step. The system prompt's restrictions are instructions to the agent, not a sandbox.
+
+Claude runs in claude-code-action's auto mode: a safety review decides tool calls that the action's allowed tools do not cover, so that list is not a strict limit. Setting `allowed-bots` makes claude-code-action keep its earlier permission defaults instead.
 
 ### Inputs
 
