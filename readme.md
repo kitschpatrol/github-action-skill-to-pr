@@ -34,6 +34,8 @@ If no files are changed by the action, then no new PR is opened. If an existing 
 
 Claude finishes by writing its report, which becomes the PR description. If Claude reaches the turn limit, ends without writing the report, commits, or switches branches, the run fails and publishes nothing. When the report is missing, the job log shows Claude's final message and its last tool calls, without their output, to help diagnose why it stopped.
 
+Background tasks are disabled, so subagents and shell commands always finish before Claude moves on. claude-code-action ends the session at Claude's first result, which would otherwise abandon work Claude left running in the background ([anthropics/claude-code-action#1499](https://github.com/anthropics/claude-code-action/issues/1499)).
+
 This is a composite action for Ubuntu runners. There is no separate configuration file. The caller checks out the base branch at the workspace root and installs any tools, dependencies, and dependency-provided skills the project needs. A shallow clone is fine. The action does not run dependency installation or skill synchronization in your project.
 
 ## Usage

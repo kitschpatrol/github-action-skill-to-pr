@@ -98,6 +98,10 @@ runs:
         # Override inherited credentials as well as inputs so OAuth wins.
         ANTHROPIC_API_KEY: ${{ steps.auth.outputs.api-key }}
         CLAUDE_CODE_OAUTH_TOKEN: ${{ steps.auth.outputs.oauth-token }}
+        # claude-code-action ends the session at Claude's first result, abandoning
+        # background subagents and shells, so they must run in the foreground.
+        # Remove once https://github.com/anthropics/claude-code-action/issues/1499 is fixed.
+        CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: '1'
       with:
         anthropic_api_key: ${{ steps.auth.outputs.api-key }}
         claude_code_oauth_token: ${{ steps.auth.outputs.oauth-token }}
