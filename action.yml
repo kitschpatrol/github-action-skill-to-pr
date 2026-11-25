@@ -93,7 +93,7 @@ runs:
 
     - name: Run skill with Claude Code
       id: claude
-      uses: anthropics/claude-code-action@e5812cd75691ca7bbfc57c0ecf4441db3a1ab7dd # v1.0.281
+      uses: anthropics/claude-code-action@eb56b6666facdbd501035f4a0269d8caee2e7a8b # v1.0.289
       env:
         # Override inherited credentials as well as inputs so OAuth wins.
         ANTHROPIC_API_KEY: ${{ steps.auth.outputs.api-key }}
